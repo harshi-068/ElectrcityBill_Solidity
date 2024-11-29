@@ -1,0 +1,176 @@
+code .
+vscode
+settings->autosave-> after delay
+menu->view -> terminal-> commandprompt
+commands
+ls -> enter
+open chatgpt link 
+in command prompt enter the command -> npm install -g truffle
+-> after installing a file will be created.
+in cmd -> truffle -init -(error is given for unpresence of truffle)
+npm install -g truffle-> command for installing truffle related packages
+-> truffle init
+
+-> select the contract folder-> right click the new file->(ElectricityBill.sol)
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract ElectricityBill {
+    address public owner;
+    uint256 public ratePerUnit;  // Cost per unit of electricity
+
+    // Structure to store user bill data
+    struct Bill {
+        uint256 previousReading;
+        uint256 currentReading;
+        uint256 unitsUsed;
+        uint256 billAmount;
+    }
+
+    mapping(address => Bill) public bills;
+
+    event BillGenerated(address indexed user, uint256 unitsUsed, uint256 billAmount);
+
+    constructor(uint256 _ratePerUnit) {
+        owner = msg.sender;
+        ratePerUnit = _ratePerUnit;
+    }
+
+    // Function to generate bill based on readings
+    function generateBill(uint256 previousReading, uint256 currentReading) public {
+        require(currentReading >= previousReading, "Invalid meter readings");
+
+        uint256 unitsUsed = currentReading - previousReading;
+        uint256 billAmount = unitsUsed * ratePerUnit;
+
+        bills[msg.sender] = Bill(previousReading, currentReading, unitsUsed, billAmount);
+        emit BillGenerated(msg.sender, unitsUsed, billAmount);
+    }
+
+    // Function to get the bill details
+    function getBill() public view returns (Bill memory) {
+        return bills[msg.sender];
+    }
+}
+
+
+create the src folder in the destop folder
+in this folder create a index.html file
+code the code
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Electricity Bill Calculator DApp</title>
+</head>
+<body>
+    <h2>Electricity Bill Calculator</h2>
+    <label>Previous Meter Reading: </label>
+    <input type="number" id="prevReading"><br><br>
+    <label>Current Meter Reading: </label>
+    <input type="number" id="currReading"><br><br>
+    <button onclick="generateBill()">Generate Bill</button>
+    <h3>Bill Details:</h3>
+    <div id="billDetails"></div>
+
+    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
+
+select scr and create a new file as (app.js)
+copy the code
+const contractAddress = "YOUR_CONTRACT_ADDRESS";
+const contractABI = /* ABI array from compiled contract */;
+
+let web3;
+let contract;
+
+// Connect to MetaMask and the contract
+window.addEventListener('load', async () => {
+    if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        contract = new web3.eth.Contract(contractABI, contractAddress);
+    } else {
+        alert("Please install MetaMask to use this DApp!");
+    }
+});
+
+// Generate bill function
+async function generateBill() {
+    const accounts = await web3.eth.getAccounts();
+    const prevReading = document.getElementById("prevReading").value;
+    const currReading = document.getElementById("currReading").value;
+
+    if (!prevReading || !currReading) {
+        alert("Please enter valid readings.");
+        return;
+    }
+
+    try {
+        await contract.methods.generateBill(prevReading, currReading)
+            .send({ from: accounts[0] });
+
+        const bill = await contract.methods.getBill().call({ from: accounts[0] });
+        document.getElementById("billDetails").innerHTML =
+            `Units Used: ${bill.unitsUsed}<br>Bill Amount: ${web3.utils.fromWei(bill.billAmount.toString(), 'ether')} Ether`;
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+in vsc we have the truffle-congif.js file
+open it
+copy the code
+
+module.exports = {
+  networks: {
+    development: {
+      host: "127.0.0.1",
+      port: 7545,
+      network_id: "*"  // Match any network id
+    }
+  },
+  compilers: {
+    solc: {
+      version: "0.8.0"
+    }
+  }
+};
+
+in migration folder-> new (2_deploy_contracts.js)
+
+open Ganache
+change to ganache from etherum
+open ganche copy the private key
+
+account -> import account->(paste private key)
+settings->eth (currency) / usd if not
+
+RemixIDE
+-> workspace-> createBlank
+uploading folder->(4) upload the desktop folder-> upload
+-> all files and folders willbe uploaded to the remixide
+-> remixide even provides the API Key-> (Benefit)
+-> open the contract folder
+solidity complier must be below->()
+*.sol -> enter
+ in VSCCode -> run the migrate command(truffle migrate --network development
+)
+
+in the ganche node->the nodes will be added.
+index.html -> rightclicl -> open with liveserver
+
+in the javascript file paste the publickey in line1(contactadress)
+next api key
+complier chane from 26 to 14 and change the version to 14 in the program 0.8.14 in the vsccode directly
+src-> app.js
+ 
+click the deloyemnt-> selected injected provider- metamask
+copy account
+in vsccode paste it in the contract address
+contractapi;
+complie the electircitybill-> abi code is generated paste in vsccode
+0xb4cd96791a2524934fc67a53cc1d016d0c1ba621b9e2f016cff5b336b429eb29
